@@ -73,9 +73,9 @@ def make_mobi(book_id, calibrepath):
     vendorpath = os.path.join(os.path.normpath(os.path.dirname(os.path.realpath(__file__)) +
                                                os.sep + "../vendor" + os.sep))
     if sys.platform == "win32":
-        kindlegen = (os.path.join(vendorpath, u"kindlegen.exe")).encode(sys.getfilesystemencoding())
+        kindlegen = os.path.join(vendorpath, u"kindlegen.exe")
     else:
-        kindlegen = (os.path.join(vendorpath, u"kindlegen")).encode(sys.getfilesystemencoding())
+        kindlegen = os.path.join(vendorpath, u"kindlegen")
     if not os.path.exists(kindlegen):
         error_message = _(u"kindlegen binary %(kindlepath)s not found", kindlepath=kindlegen)
         app.logger.error("make_mobi: " + error_message)
@@ -88,9 +88,10 @@ def make_mobi(book_id, calibrepath):
         return error_message, RET_FAIL
 
     file_path = os.path.join(calibrepath, book.path, data.name)
-    if os.path.exists(file_path + u".epub"):
+    file_path_full = file_path + u".epub"
+    if os.path.exists(file_path_full):
         try:
-            p = subprocess.Popen((kindlegen + " \"" + file_path + u".epub\"").encode(sys.getfilesystemencoding()),
+            p = subprocess.Popen((kindlegen + " \"" + file_path_full + "\"").encode(sys.getfilesystemencoding()),
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         except Exception:
             error_message = _(u"kindlegen failed, no execution permissions")
