@@ -38,34 +38,34 @@ def ucase(s):
 Base = declarative_base()
 
 books_authors_link = Table('books_authors_link', Base.metadata,
-    Column('book', Integer, ForeignKey('books.id'), primary_key=True),
-    Column('author', Integer, ForeignKey('authors.id'), primary_key=True)
-    )
+                           Column('book', Integer, ForeignKey('books.id'), primary_key=True),
+                           Column('author', Integer, ForeignKey('authors.id'), primary_key=True)
+                           )
 
 books_tags_link = Table('books_tags_link', Base.metadata,
-    Column('book', Integer, ForeignKey('books.id'), primary_key=True),
-    Column('tag', Integer, ForeignKey('tags.id'), primary_key=True)
-    )
+                        Column('book', Integer, ForeignKey('books.id'), primary_key=True),
+                        Column('tag', Integer, ForeignKey('tags.id'), primary_key=True)
+                        )
 
 books_series_link = Table('books_series_link', Base.metadata,
-    Column('book', Integer, ForeignKey('books.id'), primary_key=True),
-    Column('series', Integer, ForeignKey('series.id'), primary_key=True)
-    )
+                          Column('book', Integer, ForeignKey('books.id'), primary_key=True),
+                          Column('series', Integer, ForeignKey('series.id'), primary_key=True)
+                          )
 
 books_ratings_link = Table('books_ratings_link', Base.metadata,
-    Column('book', Integer, ForeignKey('books.id'), primary_key=True),
-    Column('rating', Integer, ForeignKey('ratings.id'), primary_key=True)
-    )
+                           Column('book', Integer, ForeignKey('books.id'), primary_key=True),
+                           Column('rating', Integer, ForeignKey('ratings.id'), primary_key=True)
+                           )
 
 books_languages_link = Table('books_languages_link', Base.metadata,
-    Column('book', Integer, ForeignKey('books.id'), primary_key=True),
-    Column('lang_code', Integer, ForeignKey('languages.id'), primary_key=True)
-    )
+                             Column('book', Integer, ForeignKey('books.id'), primary_key=True),
+                             Column('lang_code', Integer, ForeignKey('languages.id'), primary_key=True)
+                             )
 
 books_publishers_link = Table('books_publishers_link', Base.metadata,
-    Column('book', Integer, ForeignKey('books.id'), primary_key=True),
-    Column('publisher', Integer, ForeignKey('publishers.id'), primary_key=True)
-    )
+                              Column('book', Integer, ForeignKey('books.id'), primary_key=True),
+                              Column('publisher', Integer, ForeignKey('publishers.id'), primary_key=True)
+                              )
 
 
 class Identifiers(Base):
@@ -281,7 +281,7 @@ class Books(Base):
                                                                  self.last_modified, self.path, self.has_cover)
 
 
-class Custom_Columns(Base):
+class CustomColumns(Base):
     __tablename__ = 'custom_columns'
 
     id = Column(Integer, primary_key=True)
@@ -366,13 +366,15 @@ def setup_db():
         for cc_id in cc_ids:
             if (cc_id[1] == 'bool') or (cc_id[1] == 'int'):
                 setattr(Books, 'custom_column_' + str(cc_id[0]), relationship(cc_classes[cc_id[0]],
-                                                                           primaryjoin=(
-                                                                           Books.id == cc_classes[cc_id[0]].book),
-                                                                           backref='books'))
+                                                                              primaryjoin=(
+                                                                                  Books.id == cc_classes[
+                                                                                  cc_id[0]].book),
+                                                                              backref='books'))
             else:
                 setattr(Books, 'custom_column_' + str(cc_id[0]), relationship(cc_classes[cc_id[0]],
-                                                                           secondary=books_custom_column_links[cc_id[0]],
-                                                                           backref='books'))
+                                                                              secondary=books_custom_column_links[
+                                                                                  cc_id[0]],
+                                                                              backref='books'))
 
     # Base.metadata.create_all(engine)
     Session = sessionmaker()

@@ -1380,7 +1380,7 @@ def show_book(book_id):
             except Exception:
                 entries.languages[index].language_name = _(
                     isoLanguages.get(part3=entries.languages[index].lang_code).name)
-        tmpcc = db.session.query(db.Custom_Columns).filter(db.Custom_Columns.datatype.notin_(db.cc_exceptions)).all()
+        tmpcc = db.session.query(db.CustomColumns).filter(db.CustomColumns.datatype.notin_(db.cc_exceptions)).all()
 
         if config.config_columns_to_ignore:
             cc = []
@@ -1500,7 +1500,7 @@ def delete_book(book_id):
             modify_database_object([u''], book.languages, db.Languages, db.session, 'languages')
             modify_database_object([u''], book.publishers, db.Publishers, db.session, 'series')
 
-            cc = db.session.query(db.Custom_Columns).filter(db.Custom_Columns.datatype.notin_(db.cc_exceptions)).all()
+            cc = db.session.query(db.CustomColumns).filter(db.CustomColumns.datatype.notin_(db.cc_exceptions)).all()
             for c in cc:
                 cc_string = "custom_column_" + str(c.id)
                 if not c.is_multiple:
@@ -2902,7 +2902,7 @@ def edit_user(user_id):
 def edit_book(book_id):
     # create the function for sorting...
     db.session.connection().connection.connection.create_function("title_sort", 1, db.title_sort)
-    cc = db.session.query(db.Custom_Columns).filter(db.Custom_Columns.datatype.notin_(db.cc_exceptions)).all()
+    cc = db.session.query(db.CustomColumns).filter(db.CustomColumns.datatype.notin_(db.cc_exceptions)).all()
     book = db.session.query(db.Books)\
         .filter(db.Books.id == book_id).filter(common_filters()).first()
     author_names = []
@@ -3277,7 +3277,7 @@ def upload():
             author_names.append(author.name)
         if config.config_use_google_drive:
             updateGdriveCalibreFromLocal()
-        cc = db.session.query(db.Custom_Columns).filter(db.Custom_Columns.datatype.notin_(db.cc_exceptions)).all()
+        cc = db.session.query(db.CustomColumns).filter(db.CustomColumns.datatype.notin_(db.cc_exceptions)).all()
         if current_user.role_edit() or current_user.role_admin():
             return render_title_template('book_edit.html', book=db_book, authors=author_names, cc=cc,
                                          title=_(u"edit metadata"))
