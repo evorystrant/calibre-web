@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from cps import web
 import os
 import sys
 
@@ -10,14 +11,16 @@ sys.path.append(base_path)
 sys.path.append(os.path.join(base_path, 'cps'))
 sys.path.append(os.path.join(base_path, 'vendor'))
 
-from cps import web
 try:
+    # noinspection PyPackageRequirements
     from gevent.wsgi import WSGIServer
+
     gevent_present = True
 except ImportError:
     from tornado.wsgi import WSGIContainer
     from tornado.httpserver import HTTPServer
     from tornado.ioloop import IOLoop
+
     gevent_present = False
 
 if __name__ == '__main__':

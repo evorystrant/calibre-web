@@ -81,7 +81,7 @@ class Identifiers(Base):
         self.type = id_type
         self.book = book
 
-    def formatType(self):
+    def format_type(self):
         if self.type == "amazon":
             return u"Amazon"
         elif self.type == "isbn":
@@ -123,8 +123,8 @@ class Comments(Base):
     text = Column(String)
     book = Column(Integer, ForeignKey('books.id'))
 
-    def __init__(self, text, book):
-        self.text = text
+    def __init__(self, new_text, book):
+        self.text = new_text
         self.book = book
 
     def __repr__(self):
@@ -365,16 +365,13 @@ def setup_db():
 
         for cc_id in cc_ids:
             if (cc_id[1] == 'bool') or (cc_id[1] == 'int'):
-                setattr(Books, 'custom_column_' + str(cc_id[0]), relationship(cc_classes[cc_id[0]],
-                                                                              primaryjoin=(
-                                                                                  Books.id == cc_classes[
-                                                                                  cc_id[0]].book),
-                                                                              backref='books'))
+                setattr(Books, 'custom_column_' + str(cc_id[0]),
+                        relationship(cc_classes[cc_id[0]],
+                                     primaryjoin=(Books.id == cc_classes[cc_id[0]].book), ackref='books'))
             else:
-                setattr(Books, 'custom_column_' + str(cc_id[0]), relationship(cc_classes[cc_id[0]],
-                                                                              secondary=books_custom_column_links[
-                                                                                  cc_id[0]],
-                                                                              backref='books'))
+                setattr(Books, 'custom_column_' + str(cc_id[0]),
+                        relationship(cc_classes[cc_id[0]],
+                                     secondary=books_custom_column_links[cc_id[0]], backref='books'))
 
     # Base.metadata.create_all(engine)
     Session = sessionmaker()

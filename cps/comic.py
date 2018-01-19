@@ -7,7 +7,10 @@ import os
 import uploader
 
 
-def extractCover(tmp_file_name, original_file_extension):
+def extract_cover(tmp_file_name, original_file_extension):
+    cover_data = ""
+    compressed_name = ""
+
     if original_file_extension.upper() == '.CBZ':
         cf = zipfile.ZipFile(tmp_file_name)
         compressed_name = cf.namelist()[0]
@@ -28,7 +31,7 @@ def extractCover(tmp_file_name, original_file_extension):
 
 def get_comic_info(tmp_file_path, original_file_name, original_file_extension):
 
-    coverfile = extractCover(tmp_file_path, original_file_extension)
+    coverfile = extract_cover(tmp_file_path, original_file_extension)
 
     return uploader.BookMeta(
             file_path=tmp_file_path,

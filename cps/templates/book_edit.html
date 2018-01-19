@@ -69,7 +69,7 @@
           <div class="form-group">
             <label for="{{ 'custom_column_' ~ c.id }}">{{ c.name }}</label>
             {% if c.datatype == 'bool' %}
-              <select name="{{ 'custom_column_' ~ c.id }}" id="{{ 'custom_column_' ~ c.id }}" class="form-control">
+              <select id="{{ 'custom_column_' ~ c.id }}" name="{{ 'custom_column_' ~ c.id }}" class="form-control">
                 <option value="None" {% if book['custom_column_' ~ c.id]|length == 0 %} selected {% endif %}></option>
                 <option value="True"  {% if book['custom_column_' ~ c.id]|length > 0 %}{% if book['custom_column_' ~ c.id][0].value ==true %}selected{% endif %}{% endif %} >{{_('Yes')}}</option>
                 <option value="False"  {% if book['custom_column_' ~ c.id]|length > 0 %}{% if book['custom_column_' ~ c.id][0].value ==false %}selected{% endif %}{% endif %}>{{_('No')}}</option>

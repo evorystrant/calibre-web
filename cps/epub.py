@@ -5,17 +5,17 @@ import zipfile
 from lxml import etree
 import os
 import uploader
-from iso639 import languages as isoLanguages
+from iso639 import languages as iso_languages
 
 
-def extractCover(zipFile, coverFile, coverpath, tmp_file_name):
-    if coverFile is None:
+def extract_cover(zip_file, cover_file, coverpath, tmp_file_name):
+    if cover_file is None:
         return None
     else:
-        zipCoverPath = os.path.join(coverpath, coverFile).replace('\\', '/')
-        cf = zipFile.read(zipCoverPath)
+        zip_cover_path = os.path.join(coverpath, cover_file).replace('\\', '/')
+        cf = zip_file.read(zip_cover_path)
         prefix = os.path.splitext(tmp_file_name)[0]
-        tmp_cover_name = prefix + '.' + os.path.basename(zipCoverPath)
+        tmp_cover_name = prefix + '.' + os.path.basename(zip_cover_path)
         image = open(tmp_cover_name, 'wb')
         image.write(cf)
         image.close()
@@ -29,12 +29,12 @@ def get_epub_info(tmp_file_path, original_file_name, original_file_extension):
         'dc': 'http://purl.org/dc/elements/1.1/'
     }
 
-    epubZip = zipfile.ZipFile(tmp_file_path)
+    epub_zip = zipfile.ZipFile(tmp_file_path)
 
-    txt = epubZip.read('META-INF/container.xml')
+    txt = epub_zip.read('META-INF/container.xml')
     tree = etree.fromstring(txt)
     cfname = tree.xpath('n:rootfiles/n:rootfile/@full-path', namespaces=ns)[0]
-    cf = epubZip.read(cfname)
+    cf = epub_zip.read(cfname)
     tree = etree.fromstring(cf)
 
     coverpath = os.path.dirname(cfname)
@@ -65,9 +65,9 @@ def get_epub_info(tmp_file_path, original_file_name, original_file_extension):
     else:
         lang = epub_metadata['language'].split('-', 1)[0].lower()
         if len(lang) == 2:
-            epub_metadata['language'] = isoLanguages.get(part1=lang).name
+            epub_metadata['language'] = iso_languages.get(part1=lang).name
         elif len(lang) == 3:
-            epub_metadata['language'] = isoLanguages.get(part3=lang).name
+            epub_metadata['language'] = iso_languages.get(part3=lang).name
         else:
             epub_metadata['language'] = ""
 
@@ -86,23 +86,25 @@ def get_epub_info(tmp_file_path, original_file_name, original_file_extension):
     coversection = tree.xpath("/pkg:package/pkg:manifest/pkg:item[@id='cover-image']/@href", namespaces=ns)
     coverfile = None
     if len(coversection) > 0:
-        coverfile = extractCover(epubZip, coversection[0], coverpath, tmp_file_path)
+        coverfile = extract_cover(epub_zip, coversection[0], coverpath, tmp_file_path)
     else:
         meta_cover = tree.xpath("/pkg:package/pkg:metadata/pkg:meta[@name='cover']/@content", namespaces=ns)
         if len(meta_cover) > 0:
-            coversection = tree.xpath("/pkg:package/pkg:manifest/pkg:item[@id='"+meta_cover[0]+"']/@href", namespaces=ns)
+            coversection = tree.xpath("/pkg:package/pkg:manifest/pkg:item[@id='"
+                                      + meta_cover[0] + "']/@href", namespaces=ns)
             if len(coversection) > 0:
                 filetype = coversection[0].rsplit('.', 1)[-1]
                 if filetype == "xhtml" or filetype == "html":  # if cover is (x)html format
-                    markup = epubZip.read(os.path.join(coverpath, coversection[0]))
-                    markupTree = etree.fromstring(markup)
+                    markup = epub_zip.read(os.path.join(coverpath, coversection[0]))
+                    markup_tree = etree.fromstring(markup)
                     # no matter xhtml or html with no namespace
-                    imgsrc = markupTree.xpath("//*[local-name() = 'img']/@src")
+                    imgsrc = markup_tree.xpath("//*[local-name() = 'img']/@src")
                     # imgsrc maybe startwith "../"" so fullpath join then relpath to cwd
-                    filename = os.path.relpath(os.path.join(os.path.dirname(os.path.join(coverpath, coversection[0])), imgsrc[0]))
-                    coverfile = extractCover(epubZip, filename, "", tmp_file_path)
+                    filename = os.path.relpath(os.path.join(os.path.dirname(
+                        os.path.join(coverpath, coversection[0])), imgsrc[0]))
+                    coverfile = extract_cover(epub_zip, filename, "", tmp_file_path)
                 else:
-                    coverfile = extractCover(epubZip, coversection[0], coverpath, tmp_file_path)
+                    coverfile = extract_cover(epub_zip, coversection[0], coverpath, tmp_file_path)
 
     if not epub_metadata['title']:
         title = original_file_name

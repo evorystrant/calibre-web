@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>urn:uuid:2853dacf-ed79-42f5-8e8a-a7bb3d1ae6a2</id>
-  <link rel="self" href="{{url_for('feed_index')}}" type="application/atom+xml;profile=opds-catalog;kind=navigation"/>
+  <link rel="cls" href="{{url_for('feed_index')}}" type="application/atom+xml;profile=opds-catalog;kind=navigation"/>
   <link rel="start" title="{{_('Start')}}" href="{{url_for('feed_index')}}"
         type="application/atom+xml;profile=opds-catalog;kind=navigation"/>
   <link title="{{_('Search')}}" type="application/atom+xml" href="{{url_for('feed_normal_search')}}?query={searchTerms}" rel="search"/>

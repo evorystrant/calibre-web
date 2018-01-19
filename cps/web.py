@@ -160,7 +160,7 @@ class Gauth:
 @Singleton
 class Gdrive:
     def __init__(self):
-        self.drive = gdriveutils.getDrive(gauth=Gauth.Instance().auth)
+        self.drive = gdriveutils.get_drive(gauth=Gauth.Instance().auth)
 
 
 class ReverseProxied(object):
@@ -310,8 +310,8 @@ def authenticate():
 
 
 def updateGdriveCalibreFromLocal():
-    gdriveutils.backupCalibreDbAndOptionalDownload(Gdrive.Instance().drive)
-    gdriveutils.copyToDrive(Gdrive.Instance().drive, config.config_calibre_dir, False, True)
+    gdriveutils.backup_calibre_db_and_optional_download(Gdrive.Instance().drive)
+    gdriveutils.copy_to_drive(Gdrive.Instance().drive, config.config_calibre_dir, False, True)
     for x in os.listdir(config.config_calibre_dir):
         if os.path.isdir(os.path.join(config.config_calibre_dir, x)):
             shutil.rmtree(os.path.join(config.config_calibre_dir, x))
@@ -939,7 +939,7 @@ def get_opds_download_link(book_id, book_format):
     startTime = time.time()
     if config.config_use_google_drive:
         app.logger.info(time.time() - startTime)
-        df = gdriveutils.getFileFromEbooksFolder(Gdrive.Instance().drive, book.path, data.name + "." + book_format)
+        df = gdriveutils.get_file_from_ebooks_folder(Gdrive.Instance().drive, book.path, data.name + "." + book_format)
         return do_gdrive_download(df, headers)
     else:
         response = make_response(send_from_directory(os.path.join(config.config_calibre_dir, book.path), data.name + "." + book_format))
@@ -1552,8 +1552,8 @@ def watch_gdrive():
     if not config.config_google_drive_watch_changes_response:
         address = '%sgdrive/watch/callback' % config.config_google_drive_calibre_url_base
         notification_id = str(uuid4())
-        result = gdriveutils.watchChange(Gdrive.Instance().drive, notification_id,
-                               'web_hook', address, gdrive_watch_callback_token, current_milli_time() + 604800*1000)
+        result = gdriveutils.watch_change(Gdrive.Instance().drive, notification_id,
+                               'web_hook', address, gdrive_watch_callback_token, current_milli_time() + 604800 * 1000)
         print (result)
         settings = ub.session.query(ub.Settings).first()
         settings.config_google_drive_watch_changes_response = json.dumps(result)
@@ -1574,7 +1574,7 @@ def revoke_watch_gdrive():
     last_watch_response = config.config_google_drive_watch_changes_response
     if last_watch_response:
         try:
-            gdriveutils.stopChannel(Gdrive.Instance().drive, last_watch_response['id'], last_watch_response['resourceId'])
+            gdriveutils.stop_channel(Gdrive.Instance().drive, last_watch_response['id'], last_watch_response['resourceId'])
         except HttpError:
             pass
         settings = ub.session.query(ub.Settings).first()
@@ -1600,7 +1600,7 @@ def on_received_watch_confirmation():
             try:
                 j = json.loads(data)
                 app.logger.info('Getting change details')
-                response = gdriveutils.getChangeById(Gdrive.Instance().drive, j['id'])
+                response = gdriveutils.get_change_by_id(Gdrive.Instance().drive, j['id'])
                 app.logger.info(response)
                 if response:
                     dbpath = os.path.join(config.config_calibre_dir, "metadata.db")
@@ -1609,7 +1609,7 @@ def on_received_watch_confirmation():
                         app.logger.info('Database file updated')
                         copyfile(dbpath, os.path.join(tmpDir, "metadata.db_" + str(current_milli_time())))
                         app.logger.info('Backing up existing and downloading updated metadata.db')
-                        gdriveutils.downloadFile(Gdrive.Instance().drive, None, "metadata.db", os.path.join(tmpDir, "tmp_metadata.db"))
+                        gdriveutils.download_file(Gdrive.Instance().drive, None, "metadata.db", os.path.join(tmpDir, "tmp_metadata.db"))
                         app.logger.info('Setting up new DB')
                         os.rename(os.path.join(tmpDir, "tmp_metadata.db"), dbpath)
                         db.setup_db()
@@ -1755,7 +1755,7 @@ def advanced_search():
 
 
 def get_cover_via_gdrive(cover_path):
-    df = gdriveutils.getFileFromEbooksFolder(Gdrive.Instance().drive, cover_path, 'cover.jpg')
+    df = gdriveutils.get_file_from_ebooks_folder(Gdrive.Instance().drive, cover_path, 'cover.jpg')
     if not gdriveutils.session.query(gdriveutils.PermissionAdded).filter(gdriveutils.PermissionAdded.gdrive_id == df['id']).first():
         df.GetPermissions()
         df.InsertPermission({
@@ -1792,7 +1792,7 @@ def serve_book(book_id, book_format):
             headers["Content-Type"] = mimetypes.types_map['.' + book_format]
         except KeyError:
             headers["Content-Type"] = "application/octet-stream"
-        df = gdriveutils.getFileFromEbooksFolder(Gdrive.Instance().drive, book.path, data.name + "." + book_format)
+        df = gdriveutils.get_file_from_ebooks_folder(Gdrive.Instance().drive, book.path, data.name + "." + book_format)
         return do_gdrive_download(df, headers)
     else:
         return send_from_directory(os.path.join(config.config_calibre_dir, book.path), data.name + "." + book_format)
@@ -1945,7 +1945,7 @@ def get_download_link(book_id, book_format):
             headers["Content-Type"] = "application/octet-stream"
         headers["Content-Disposition"] = "attachment; filename*=UTF-8''%s.%s" % (quote(file_name.encode('utf-8')), book_format)
         if config.config_use_google_drive:
-            df = gdriveutils.getFileFromEbooksFolder(Gdrive.Instance().drive, book.path, '%s.%s' % (data.name, book_format))
+            df = gdriveutils.get_file_from_ebooks_folder(Gdrive.Instance().drive, book.path, '%s.%s' % (data.name, book_format))
             return do_gdrive_download(df, headers)
         else:
             response = make_response(send_from_directory(os.path.join(config.config_calibre_dir, book.path), data.name + "." + book_format))
@@ -2609,7 +2609,7 @@ def configuration_helper(origin):
             reboot_required = True
         try:
             if content.config_use_google_drive and is_gdrive_ready() and not os.path.exists(config.config_calibre_dir + "/metadata.db"):
-                gdriveutils.downloadFile(Gdrive.Instance().drive, None, "metadata.db", config.config_calibre_dir + "/metadata.db")
+                gdriveutils.download_file(Gdrive.Instance().drive, None, "metadata.db", config.config_calibre_dir + "/metadata.db")
             if db_change:
                 if config.db_configured:
                     db.session.close()
@@ -2999,7 +2999,7 @@ def edit_book(book_id):
         if len(book.comments):
             book.comments[0].text = to_save["description"]
         else:
-            book.comments.append(db.Comments(text=to_save["description"], book=book.id))
+            book.comments.append(db.Comments(new_text=to_save["description"], book=book.id))
 
         input_tags = to_save["tags"].split(',')
         input_tags = list(map(lambda it: it.strip(), input_tags))
@@ -3150,7 +3150,7 @@ def save_cover(url, book_path):
         f = open(os.path.join(tmpDir, "uploaded_cover.jpg"), "wb")
         f.write(img.content)
         f.close()
-        gdriveutils.uploadFileToEbooksFolder(Gdrive.Instance().drive, os.path.join(book_path, 'cover.jpg'), os.path.join(tmpDir, f.name))
+        gdriveutils.upload_file_to_ebooks_folder(Gdrive.Instance().drive, os.path.join(book_path, 'cover.jpg'), os.path.join(tmpDir, f.name))
         return true
 
     f = open(os.path.join(config.config_calibre_dir, book_path, "cover.jpg"), "wb")

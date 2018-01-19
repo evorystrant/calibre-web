@@ -13,14 +13,16 @@ logger = logging.getLogger("book_formats")
 
 try:
     from wand.image import Image
-    from wand import version as ImageVersion
+    from wand import version as image_version
+
     use_generic_pdf_cover = False
 except ImportError as e:
     logger.warning('cannot import Image, generating pdf covers for pdf uploads will not work: %s', e)
     use_generic_pdf_cover = True
 try:
     from PyPDF2 import PdfFileReader
-    from PyPDF2 import __version__ as PyPdfVersion
+    from PyPDF2 import __version__ as py_pdf_version
+
     use_pdf_meta = True
 except ImportError as e:
     logger.warning('cannot import PyPDF2, extracting pdf metadata will not work: %s', e)
@@ -28,6 +30,7 @@ except ImportError as e:
 
 try:
     import epub
+
     use_epub_meta = True
 except ImportError as e:
     logger.warning('cannot import epub, extracting epub metadata will not work: %s', e)
@@ -35,6 +38,7 @@ except ImportError as e:
 
 try:
     import fb2
+
     use_fb2_meta = True
 except ImportError as e:
     logger.warning('cannot import fb2, extracting fb2 metadata will not work: %s', e)
@@ -77,7 +81,6 @@ def default_meta(tmp_file_path, original_file_name, original_file_extension):
 
 
 def pdf_meta(tmp_file_path, original_file_name, original_file_extension):
-
     if use_pdf_meta:
         pdf = PdfFileReader(open(tmp_file_path, 'rb'))
         doc_info = pdf.getDocumentInfo()
@@ -118,11 +121,11 @@ def pdf_preview(tmp_file_path, tmp_dir):
 
 def get_versions():
     if not use_generic_pdf_cover:
-        IVersion=ImageVersion.MAGICK_VERSION
+        i_version = image_version.MAGICK_VERSION
     else:
-        IVersion=_(u'not installed')
+        i_version = _(u'not installed')
     if use_pdf_meta:
-        PVersion=PyPdfVersion
+        p_version = py_pdf_version
     else:
-        PVersion=_(u'not installed')
-    return {'ImageVersion': IVersion, 'PyPdfVersion': PVersion}
+        p_version = _(u'not installed')
+    return {'ImageVersion': i_version, 'PyPdfVersion': p_version}

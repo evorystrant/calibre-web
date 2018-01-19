@@ -36,6 +36,7 @@ import shutil
 import requests
 import zipfile
 from tornado.ioloop import IOLoop
+
 try:
     import gdriveutils as gd
 except ImportError:
@@ -44,6 +45,7 @@ import web
 
 try:
     import unidecode
+
     use_unidecode = True
 except ImportError:
     use_unidecode = False
@@ -114,11 +116,11 @@ def make_mobi(book_id, calibrepath):
         check = p.returncode
         if not check or check < 2:
             book.data.append(db.Data(
-                    name=book.data[0].name,
-                    book_format="MOBI",
-                    book=book.id,
-                    uncompressed_size=os.path.getsize(file_path + ".mobi")
-                ))
+                name=book.data[0].name,
+                book_format="MOBI",
+                book=book.id,
+                uncompressed_size=os.path.getsize(file_path + ".mobi")
+            ))
             db.session.commit()
             return file_path + ".mobi", RET_SUCCESS
         else:
@@ -132,7 +134,6 @@ def make_mobi(book_id, calibrepath):
 
 
 class StderrLogger(object):
-
     buffer = ''
 
     def __init__(self):
@@ -162,7 +163,7 @@ def send_raw_email(kindle_mail, msg):
 
     # send email
     try:
-        timeout = 600     # set timeout to 5mins
+        timeout = 600  # set timeout to 5mins
 
         org_stderr = sys.stderr
         sys.stderr = StderrLogger()
@@ -227,8 +228,8 @@ def send_mail(book_id, kindle_mail, calibrepath):
     if 'mobi' in formats:
         msg.attach(get_attachment(formats['mobi']))
     elif 'epub' in formats:
-        data, resultCode = make_mobi(book.id, calibrepath)
-        if resultCode == RET_SUCCESS:
+        data, result_code = make_mobi(book.id, calibrepath)
+        if result_code == RET_SUCCESS:
             msg.attach(get_attachment(data))
         else:
             app.logger.error = data
@@ -266,7 +267,7 @@ def get_valid_filename(value, replace_whitespace=True):
     filename. Limits num characters to 128 max.
     """
     if value[-1:] == u'.':
-        value = value[:-1]+u'_'
+        value = value[:-1] + u'_'
     value = value.replace("/", "_").replace(":", "_").strip('\0')
     if use_unidecode:
         value = (unidecode.unidecode(value)).strip()
@@ -281,9 +282,9 @@ def get_valid_filename(value, replace_whitespace=True):
             value = unicode(re_slugify.sub('', value).strip())
     if replace_whitespace:
         #  *+:\"/<>? are replaced by _
-        value = re.sub(r'[\*\+:\\\"/<>\?]+', u'_', value, flags=re.U)
+        value = re.sub(r'[*+:\\\"/<>?]+', u'_', value, flags=re.U)
         # pipe has to be replaced with comma
-        value = re.sub(r'[\|]+', u',', value, flags=re.U)
+        value = re.sub(r'[|]+', u',', value, flags=re.U)
     value = value[:128]
     if not value:
         raise ValueError("Filename cannot be empty")
@@ -311,7 +312,8 @@ def delete_book(book, calibrepath):
         path = os.path.join(calibrepath, book.path)
         shutil.rmtree(path, ignore_errors=True)
     else:
-        logging.getLogger('cps.web').error("Deleting book " + str(book.id) + " failed, book path value: "+ book.path)
+        logging.getLogger('cps.web').error("Deleting book " + str(book.id) + " failed, book path value: " + book.path)
+
 
 # ToDo: Implement delete book on gdrive
 def delete_book_gdrive(book):
@@ -327,6 +329,7 @@ def update_dir_stucture(book_id, calibrepath):
 
     titledir = localbook.path.split('/')[1]
     new_titledir = get_valid_filename(localbook.title) + " (" + str(book_id) + ")"
+    new_title_path = ""
 
     if titledir != new_titledir:
         try:
@@ -339,6 +342,7 @@ def update_dir_stucture(book_id, calibrepath):
             logging.getLogger('cps.web').error(ex, exc_info=True)
             return _('Rename title from: "%s" to "%s" failed with error: %s' % (path, new_title_path, str(ex)))
     if authordir != new_authordir:
+        new_author_path = ""
         try:
             new_author_path = os.path.join(os.path.join(calibrepath, new_authordir), os.path.basename(path))
             os.renames(path, new_author_path)
@@ -361,15 +365,15 @@ def update_dir_structure_gdrive(book_id):
 
     if titledir != new_titledir:
         print (titledir)
-        gFile = gd.getFileFromEbooksFolder(web.Gdrive.Instance().drive, os.path.dirname(book.path), titledir)
-        gFile['title'] = new_titledir
-        gFile.Upload()
+        g_file = gd.get_file_from_ebooks_folder(web.Gdrive.Instance().drive, os.path.dirname(book.path), titledir)
+        g_file['title'] = new_titledir
+        g_file.Upload()
         book.path = book.path.split('/')[0] + '/' + new_titledir
 
     if authordir != new_authordir:
-        gFile = gd.getFileFromEbooksFolder(web.Gdrive.Instance().drive, None, authordir)
-        gFile['title'] = new_authordir
-        gFile.Upload()
+        g_file = gd.get_file_from_ebooks_folder(web.Gdrive.Instance().drive, None, authordir)
+        g_file['title'] = new_authordir
+        g_file.Upload()
         book.path = new_authordir + '/' + book.path.split('/')[1]
     return error
 
@@ -412,15 +416,15 @@ class Updater(threading.Thread):
         return self.status
 
     @classmethod
-    def file_to_list(self, filelist):
+    def file_to_list(cls, filelist):
         return [x.strip() for x in open(filelist, 'r') if not x.startswith('#EXT')]
 
     @classmethod
-    def one_minus_two(self, one, two):
+    def one_minus_two(cls, one, two):
         return [x for x in one if x not in set(two)]
 
     @classmethod
-    def reduce_dirs(self, delete_files, new_list):
+    def reduce_dirs(cls, delete_files, new_list):
         new_delete = []
         for filename in delete_files:
             parts = filename.split(os.sep)
@@ -441,7 +445,7 @@ class Updater(threading.Thread):
         return list(set(new_delete))
 
     @classmethod
-    def reduce_files(self, remove_items, exclude_items):
+    def reduce_files(cls, remove_items, exclude_items):
         rf = []
         for item in remove_items:
             if not item.startswith(exclude_items):
@@ -449,7 +453,7 @@ class Updater(threading.Thread):
         return rf
 
     @classmethod
-    def moveallfiles(self, root_src_dir, root_dst_dir):
+    def moveallfiles(cls, root_src_dir, root_dst_dir):
         change_permissions = True
         if sys.platform == "win32" or sys.platform == "darwin":
             change_permissions = False
@@ -461,7 +465,7 @@ class Updater(threading.Thread):
             dst_dir = src_dir.replace(root_src_dir, root_dst_dir, 1)
             if not os.path.exists(dst_dir):
                 os.makedirs(dst_dir)
-                logging.getLogger('cps.web').debug('Create-Dir: '+dst_dir)
+                logging.getLogger('cps.web').debug('Create-Dir: ' + dst_dir)
                 if change_permissions:
                     # print('Permissions: User '+str(new_permissions.st_uid)+' Group '+str(new_permissions.st_uid))
                     os.chown(dst_dir, new_permissions.st_uid, new_permissions.st_gid)
@@ -471,13 +475,13 @@ class Updater(threading.Thread):
                 if os.path.exists(dst_file):
                     if change_permissions:
                         permission = os.stat(dst_file)
-                    logging.getLogger('cps.web').debug('Remove file before copy: '+dst_file)
+                    logging.getLogger('cps.web').debug('Remove file before copy: ' + dst_file)
                     os.remove(dst_file)
                 else:
                     if change_permissions:
                         permission = new_permissions
                 shutil.move(src_file, dst_dir)
-                logging.getLogger('cps.web').debug('Move File '+src_file+' to '+dst_dir)
+                logging.getLogger('cps.web').debug('Move File ' + src_file + ' to ' + dst_dir)
                 if change_permissions:
                     try:
                         os.chown(dst_file, permission.st_uid, permission.st_gid)
@@ -485,8 +489,10 @@ class Updater(threading.Thread):
                         # ex = sys.exc_info()
                         old_permissions = os.stat(dst_file)
                         logging.getLogger('cps.web').debug('Fail change permissions of ' + str(dst_file) + '. Before: '
-                            + str(old_permissions.st_uid) + ':' + str(old_permissions.st_gid) + ' After: '
-                            + str(permission.st_uid) + ':' + str(permission.st_gid) + ' error: '+str(e))
+                                                           + str(old_permissions.st_uid) + ':' + str(
+                            old_permissions.st_gid) + ' After: '
+                                                           + str(permission.st_uid) + ':' + str(
+                            permission.st_gid) + ' error: ' + str(e))
         return
 
     def update_source(self, source, destination):
