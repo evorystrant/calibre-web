@@ -309,7 +309,7 @@ def setup_db():
         content.config_calibre_dir = None
         content.db_configured = False
         ub.session.commit()
-        config.loadSettings()
+        config.load_settings()
         return False
 
     dbpath = os.path.join(config.config_calibre_dir, "metadata.db")
@@ -321,12 +321,12 @@ def setup_db():
         content.config_calibre_dir = None
         content.db_configured = False
         ub.session.commit()
-        config.loadSettings()
+        config.load_settings()
         return False
     content = ub.session.query(ub.Settings).first()
     content.db_configured = True
     ub.session.commit()
-    config.loadSettings()
+    config.load_settings()
     conn.connection.create_function('title_sort', 1, title_sort)
     conn.connection.create_function('lower', 1, lcase)
     conn.connection.create_function('upper', 1, ucase)

@@ -1560,7 +1560,7 @@ def watch_gdrive():
         ub.session.merge(settings)
         ub.session.commit()
         settings = ub.session.query(ub.Settings).first()
-        config.loadSettings()
+        config.load_settings()
 
         print (settings.config_google_drive_watch_changes_response)
 
@@ -1581,7 +1581,7 @@ def revoke_watch_gdrive():
         settings.config_google_drive_watch_changes_response = None
         ub.session.merge(settings)
         ub.session.commit()
-        config.loadSettings()
+        config.load_settings()
     return redirect(url_for('configuration'))
 
 
@@ -2616,7 +2616,7 @@ def configuration_helper(origin):
                     db.engine.dispose()
             ub.session.commit()
             flash(_(u"Calibre-web configuration updated"), category="success")
-            config.loadSettings()
+            config.load_settings()
             app.logger.setLevel(config.config_log_level)
             logging.getLogger("book_formats").setLevel(config.config_log_level)
         except e:
